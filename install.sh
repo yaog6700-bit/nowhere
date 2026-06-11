@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # ============================================================
-# Nowhere Server 一键安装脚本
-# 用法: curl -sL https://raw.githubusercontent.com/你的用户名/nowhere-server/main/install.sh | bash
+# Nowhere Server 涓€閿畨瑁呰剼鏈?# 鐢ㄦ硶: curl -sL https://raw.githubusercontent.com/yaog6700-bit/nowhere/main/install.sh | bash
 # ============================================================
 
 set -e
@@ -20,68 +19,64 @@ INSTALL_DIR="/root"
 SERVICE_NAME="nowhere"
 
 echo -e "${CYAN}"
-echo "╔══════════════════════════════════════╗"
-echo "║      Nowhere Server 一键安装          ║"
-echo "╚══════════════════════════════════════╝"
+echo "鈺斺晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晽"
+echo "鈺?     Nowhere Server 涓€閿畨瑁?         鈺?
+echo "鈺氣晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暆"
 echo -e "${NC}"
 
-# ── 检查 root 权限 ──────────────────────────────────────────
+# 鈹€鈹€ 妫€鏌?root 鏉冮檺 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 if [ "$EUID" -ne 0 ]; then
-  echo -e "${RED}[错误] 请使用 root 用户运行此脚本${NC}"
+  echo -e "${RED}[閿欒] 璇蜂娇鐢?root 鐢ㄦ埛杩愯姝よ剼鏈?{NC}"
   exit 1
 fi
 
-# ── 检查系统架构 ─────────────────────────────────────────────
+# 鈹€鈹€ 妫€鏌ョ郴缁熸灦鏋?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 ARCH=$(uname -m)
 if [ "$ARCH" != "x86_64" ]; then
-  echo -e "${RED}[错误] 当前仅支持 x86_64 架构，当前: $ARCH${NC}"
+  echo -e "${RED}[閿欒] 褰撳墠浠呮敮鎸?x86_64 鏋舵瀯锛屽綋鍓? $ARCH${NC}"
   exit 1
 fi
 
-# ── 获取公网 IP ──────────────────────────────────────────────
-echo -e "${YELLOW}[*] 获取公网 IP...${NC}"
+# 鈹€鈹€ 鑾峰彇鍏綉 IP 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+echo -e "${YELLOW}[*] 鑾峰彇鍏綉 IP...${NC}"
 PUBLIC_IP=$(curl -s -4 ip.sb 2>/dev/null || curl -s ifconfig.me 2>/dev/null)
-echo -e "${GREEN}[✓] 公网 IP: ${PUBLIC_IP}${NC}"
+echo -e "${GREEN}[鉁揮 鍏綉 IP: ${PUBLIC_IP}${NC}"
 
-# ── 交互配置 ─────────────────────────────────────────────────
+# 鈹€鈹€ 浜や簰閰嶇疆锛堜粠 /dev/tty 璇诲彇锛屽吋瀹?curl|bash锛夆攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 echo ""
-echo -e "${CYAN}── 配置参数 ──────────────────────────────${NC}"
+echo -e "${CYAN}鈹€鈹€ 閰嶇疆鍙傛暟 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€${NC}"
 
-# 端口
-read -p "监听端口 [默认: 11111]: " PORT
+read -p "鐩戝惉绔彛 [榛樿: 11111]: " PORT </dev/tty
 PORT=${PORT:-11111}
 
-# Key
-read -p "认证 Key [留空自动生成]: " KEY
+read -p "璁よ瘉 Key [鐣欑┖鑷姩鐢熸垚]: " KEY </dev/tty
 if [ -z "$KEY" ]; then
   KEY=$(openssl rand -hex 16)
-  echo -e "${GREEN}[✓] 自动生成 Key: ${KEY}${NC}"
+  echo -e "${GREEN}[鉁揮 鑷姩鐢熸垚 Key: ${KEY}${NC}"
 fi
 
-# 带宽
-read -p "带宽限制 etar [默认: 1000]: " ETAR
+read -p "甯﹀闄愬埗 etar [榛樿: 1000]: " ETAR </dev/tty
 ETAR=${ETAR:-1000}
 
-# 节点备注名
-read -p "节点备注名 [默认: My-Node]: " LABEL
+read -p "鑺傜偣澶囨敞鍚?[榛樿: My-Node]: " LABEL </dev/tty
 LABEL=${LABEL:-My-Node}
 
 echo ""
 
-# ── 下载二进制 ───────────────────────────────────────────────
+# 鈹€鈹€ 涓嬭浇浜岃繘鍒?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 BINARY_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${BINARY_NAME}"
-echo -e "${YELLOW}[*] 下载 nowhere 二进制...${NC}"
+echo -e "${YELLOW}[*] 涓嬭浇 nowhere 浜岃繘鍒?..${NC}"
 
 if ! curl -sL "$BINARY_URL" -o "${INSTALL_DIR}/${BINARY_NAME}"; then
-  echo -e "${RED}[错误] 下载失败，请检查 GitHub 链接${NC}"
+  echo -e "${RED}[閿欒] 涓嬭浇澶辫触锛岃妫€鏌ョ綉缁?{NC}"
   exit 1
 fi
 
 chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
-echo -e "${GREEN}[✓] 下载完成${NC}"
+echo -e "${GREEN}[鉁揮 涓嬭浇瀹屾垚${NC}"
 
-# ── 配置 systemd 服务 ─────────────────────────────────────────
-echo -e "${YELLOW}[*] 配置系统服务...${NC}"
+# 鈹€鈹€ 閰嶇疆 systemd 鏈嶅姟 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+echo -e "${YELLOW}[*] 閰嶇疆绯荤粺鏈嶅姟...${NC}"
 
 cat > /etc/systemd/system/${SERVICE_NAME}.service << EOF
 [Unit]
@@ -103,45 +98,44 @@ EOF
 systemctl daemon-reload
 systemctl enable ${SERVICE_NAME} --quiet
 systemctl restart ${SERVICE_NAME}
-echo -e "${GREEN}[✓] 服务已启动并设置开机自启${NC}"
+echo -e "${GREEN}[鉁揮 鏈嶅姟宸插惎鍔ㄥ苟璁剧疆寮€鏈鸿嚜鍚?{NC}"
 
-# ── 配置防火墙 ───────────────────────────────────────────────
-echo -e "${YELLOW}[*] 配置防火墙 (UDP ${PORT})...${NC}"
+# 鈹€鈹€ 閰嶇疆闃茬伀澧?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+echo -e "${YELLOW}[*] 閰嶇疆闃茬伀澧?(UDP ${PORT})...${NC}"
 
 if command -v ufw &>/dev/null; then
   ufw allow ${PORT}/udp --quiet
-  echo -e "${GREEN}[✓] ufw 已放行 UDP ${PORT}${NC}"
+  echo -e "${GREEN}[鉁揮 ufw 宸叉斁琛?UDP ${PORT}${NC}"
 elif command -v firewall-cmd &>/dev/null; then
   firewall-cmd --permanent --add-port=${PORT}/udp --quiet
   firewall-cmd --reload --quiet
-  echo -e "${GREEN}[✓] firewalld 已放行 UDP ${PORT}${NC}"
+  echo -e "${GREEN}[鉁揮 firewalld 宸叉斁琛?UDP ${PORT}${NC}"
 else
   iptables -A INPUT -p udp --dport ${PORT} -j ACCEPT
-  echo -e "${GREEN}[✓] iptables 已放行 UDP ${PORT}${NC}"
+  echo -e "${GREEN}[鉁揮 iptables 宸叉斁琛?UDP ${PORT}${NC}"
 fi
 
-# ── 等待服务启动 ──────────────────────────────────────────────
+# 鈹€鈹€ 绛夊緟鏈嶅姟鍚姩 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 sleep 2
 
-# ── 输出结果 ─────────────────────────────────────────────────
+# 鈹€鈹€ 杈撳嚭缁撴灉 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 echo ""
 echo -e "${GREEN}"
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                  安装完成！节点信息如下                       ║"
-echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║"
-echo "║  连接串："
-echo "║  nowhere://${KEY}@${PUBLIC_IP}:${PORT}#${LABEL}"
-echo "║"
-echo "║  IP   : ${PUBLIC_IP}"
-echo "║  端口 : ${PORT} (UDP)"
-echo "║  Key  : ${KEY}"
-echo "║  etar : ${ETAR}"
-echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║  管理命令："
-echo "║  查看日志: tail -f /var/log/nowhere.log"
-echo "║  重启服务: systemctl restart nowhere"
-echo "║  停止服务: systemctl stop nowhere"
-echo "╚══════════════════════════════════════════════════════════════╝"
+echo "鈺斺晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晽"
+echo "鈺?                 瀹夎瀹屾垚锛佽妭鐐逛俊鎭涓?                      鈺?
+echo "鈺犫晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暎"
+echo "鈺?
+echo "鈺? 杩炴帴涓诧細"
+echo "鈺? nowhere://${KEY}@${PUBLIC_IP}:${PORT}#${LABEL}"
+echo "鈺?
+echo "鈺? IP   : ${PUBLIC_IP}"
+echo "鈺? 绔彛 : ${PORT} (UDP)"
+echo "鈺? Key  : ${KEY}"
+echo "鈺? etar : ${ETAR}"
+echo "鈺犫晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暎"
+echo "鈺? 绠＄悊鍛戒护锛?
+echo "鈺? 鏌ョ湅鏃ュ織: tail -f /var/log/nowhere.log"
+echo "鈺? 閲嶅惎鏈嶅姟: systemctl restart nowhere"
+echo "鈺? 鍋滄鏈嶅姟: systemctl stop nowhere"
+echo "鈺氣晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暆"
 echo -e "${NC}"
-
