@@ -69,7 +69,7 @@ LABEL=${LABEL:-My-Node}
 echo ""
 
 # ── 下载二进制 ───────────────────────────────────────────────
-BINARY_URL="https://github.com/${GITHUB_USER}/${REPO}/releases/latest/download/${BINARY_NAME}"
+BINARY_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${BINARY_NAME}"
 echo -e "${YELLOW}[*] 下载 nowhere 二进制...${NC}"
 
 if ! curl -sL "$BINARY_URL" -o "${INSTALL_DIR}/${BINARY_NAME}"; then
