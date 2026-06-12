@@ -115,6 +115,37 @@ do_install() {
   LABEL=${LABEL:-My-Node}
 
   echo ""
+  # ── 网络环境检查与修复 ────────────────────────────────────────
+  echo -e "${YELLOW}[*] 检查网络环境...${NC}"
+
+  # 1. 检测 IPv6：有地址但出网不通则禁用
+  HAS_IPV6=$(ip -6 addr show scope global 2>/dev/null | grep -c 'inet6' || true)
+  if [ "$HAS_IPV6" -gt 0 ]; then
+    IPV6_OK=$(curl -6 --max-time 5 -s https://ipv6.google.com -o /dev/null -w "%{http_code}" 2>/dev/null || true)
+    if [ "$IPV6_OK" != "200" ]; then
+      echo -e "${YELLOW}[!] 检测到 IPv6 地址但出网不通，自动禁用 IPv6 以避免连接超时...${NC}"
+      sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
+      sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
+      grep -qF 'net.ipv6.conf.all.disable_ipv6' /etc/sysctl.conf || \
+        echo "net.ipv6.conf.all.disable_ipv6 = 1" >> /etc/sysctl.conf
+      grep -qF 'net.ipv6.conf.default.disable_ipv6' /etc/sysctl.conf || \
+        echo "net.ipv6.conf.default.disable_ipv6 = 1" >> /etc/sysctl.conf
+      echo -e "${GREEN}[✓] IPv6 已禁用${NC}"
+    else
+      echo -e "${GREEN}[✓] IPv6 出网正常${NC}"
+    fi
+  fi
+
+  # 2. 清理失效的 docker0 路由（仅在 Docker 未运行时，避免破坏容器网络）
+  if ip route show | grep -q 'docker0'; then
+    if systemctl is-active --quiet docker 2>/dev/null; then
+      echo -e "${YELLOW}[!] 检测到 Docker 正在运行，跳过 docker0 路由清理（避免影响容器网络）${NC}"
+    else
+      ip route del 172.17.0.0/16 2>/dev/null || true
+      echo -e "${GREEN}[✓] 已清理失效的 docker0 路由${NC}"
+    fi
+  fi
+
   BINARY_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${BINARY_NAME}"
   echo -e "${YELLOW}[*] 下载 nowhere...${NC}"
   curl -sL "$BINARY_URL" -o "${INSTALL_DIR}/${BINARY_NAME}" || { echo -e "${RED}[错误] 下载失败${NC}"; exit 1; }
