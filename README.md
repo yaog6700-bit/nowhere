@@ -104,8 +104,8 @@ systemctl restart nowhere
 
 ## 客户端
 
-使用 [Anywhere](https://apps.apple.com/app/anywhere) iOS 客户端连接，将安装完成后输出的连接串导入即可。
-使用 Swell Proxy for Windows 
+IOS&MAC:使用 [Anywhere](https://apps.apple.com/app/anywhere) iOS 客户端连接，将安装完成后输出的连接串导入即可。
+Windows :使用 Swell Proxy for Windows 
 ---
 
 ## License
